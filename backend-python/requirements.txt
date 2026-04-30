@@ -1,2 +1,6 @@
+flask
+flask-cors
 textblob
 textblob-fr
+gunicorn
+pdfplumber
