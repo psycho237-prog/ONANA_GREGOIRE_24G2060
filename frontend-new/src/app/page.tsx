@@ -371,7 +371,7 @@ export default function Dashboard() {
           </section>
 
           {/* Form Section */}
-          <section className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-6 md:p-8 lg:p-10 backdrop-blur-xl flex flex-col h-fit xl:sticky xl:top-10 shadow-3xl shadow-indigo-600/5">
+          <section id="feedback-form" className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-6 md:p-8 lg:p-10 backdrop-blur-xl flex flex-col h-fit xl:sticky xl:top-10 shadow-3xl shadow-indigo-600/5">
             <div className="mb-8">
               <h3 className="text-2xl font-bold flex items-center gap-3 text-white mb-2">
                 <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/40"><Send className="text-white w-5 h-5" /></div>
@@ -448,6 +448,18 @@ export default function Dashboard() {
             <p className="text-slate-500 text-[9px] font-medium tracking-wider">© 2025/2026 Faculté des Sciences - Université de Yaoundé I</p>
           </div>
         </footer>
+
+        {/* Floating Action Button for Mobile */}
+        <button 
+          onClick={() => document.getElementById('feedback-form')?.scrollIntoView({ behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 lg:hidden z-50 p-4 rounded-full bg-indigo-600 text-white shadow-2xl shadow-indigo-500/40 hover:scale-110 active:scale-95 transition-all duration-300 group overflow-hidden"
+          title="Partager votre avis"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-violet-500 opacity-100 group-hover:scale-110 transition-transform duration-500"></div>
+          <div className="relative flex items-center justify-center">
+            <MessageSquarePlus className="w-6 h-6 animate-pulse" />
+          </div>
+        </button>
       </main>
 
       <style jsx global>{`
