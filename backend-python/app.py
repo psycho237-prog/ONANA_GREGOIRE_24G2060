@@ -19,7 +19,7 @@ CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.join(BASE_DIR, '..', 'scripts')
-# Use persistent storage path if available (Render)
+# Use local folder for DB if no persistent disk is available (Render Free)
 DB_PATH = os.environ.get('DB_PATH', os.path.join(BASE_DIR, 'student_sentiment.db'))
 
 
