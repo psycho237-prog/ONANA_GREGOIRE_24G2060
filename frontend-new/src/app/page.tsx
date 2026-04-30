@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getCourses, getStats, submitFeedback, getFeedbacks, getAnalysis, Course, Stats, FeedbackOutput, Analysis } from "@/lib/api";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
@@ -450,7 +451,13 @@ export default function Dashboard() {
           </div>
           <div className="text-center">
             <p className="text-slate-600 text-[10px] font-bold uppercase tracking-[0.3em] mb-1">Système National de Monitoring</p>
-            <p className="text-slate-500 text-[9px] font-medium tracking-wider">© 2025/2026 Faculté des Sciences - Université de Yaoundé I</p>
+            <p className="text-slate-500 text-[9px] font-medium tracking-wider mb-4">© 2025/2026 Faculté des Sciences - Université de Yaoundé I</p>
+            <Link 
+              href="/about" 
+              className="text-[10px] text-indigo-400/60 hover:text-indigo-400 font-bold uppercase tracking-widest border-b border-indigo-400/20 hover:border-indigo-400 transition-all pb-0.5"
+            >
+              À propos & Consentement
+            </Link>
           </div>
         </footer>
 
