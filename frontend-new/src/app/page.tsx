@@ -8,7 +8,7 @@ import {
 import { 
   GraduationCap, MessageSquare, Users, 
   Send, ChevronRight, BarChart3, Info, User,
-  Menu, X, Search, Sparkles, TrendingUp
+  Menu, X, Search, Sparkles, TrendingUp, MessageSquarePlus
 } from 'lucide-react';
 
 const COLORS = ['#10b981', '#6366f1', '#ef4444']; // Positive, Neutral, Negative
