@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: student-sentiment-api
+    env: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8080
+    healthCheckPath: /api/ping
+    autoDeploy: true

@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Database
+*.db
+*.db-journal
+
+# Environment variables
+.env*.local
+
+# IDEs
+.vscode/
+.idea/
+
+# GitHub CLI Temp
+gh_temp/
