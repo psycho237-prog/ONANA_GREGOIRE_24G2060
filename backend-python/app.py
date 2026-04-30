@@ -42,18 +42,9 @@ def get_db():
 
 
 def init_db():
-    print(f"[DB] Initializing database at {DB_PATH}...")
-    print(f"[DB] Scripts directory: {SCRIPTS_DIR}")
-    
-    # Check if scripts exist
-    if not os.path.exists(SCRIPTS_DIR):
-        print(f"[DB] ERROR: Scripts directory NOT FOUND at {SCRIPTS_DIR}")
-        # Try fallback to local scripts folder if running from within backend-python
-        fallback_scripts = os.path.join(BASE_DIR, 'scripts')
-        if os.path.exists(fallback_scripts):
-            global SCRIPTS_DIR
-            SCRIPTS_DIR = fallback_scripts
-            print(f"[DB] Found fallback scripts at {SCRIPTS_DIR}")
+    print(f"--- DB INIT START ---")
+    print(f"DB_PATH: {DB_PATH}")
+    print(f"SCRIPTS_DIR: {SCRIPTS_DIR}")
     
     try:
         conn = get_db()
