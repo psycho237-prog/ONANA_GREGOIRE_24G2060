@@ -159,10 +159,7 @@ def init_db():
         print("--- DB INIT SUCCESS ---")
     except Exception as e:
         print(f"--- DB INIT FATAL ERROR: {e} ---")
-                print("[DB] Seeded 200 shuffled feedbacks.")
 
-    conn.commit()
-    conn.close()
 
 
 @app.route('/api/ping')
