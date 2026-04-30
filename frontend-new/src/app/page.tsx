@@ -289,6 +289,8 @@ export default function Dashboard() {
                         paddingAngle={10}
                         dataKey="value"
                         stroke="none"
+                        labelLine={false}
+                        label={({ percent }) => percent > 0 ? `${(percent * 100).toFixed(0)}%` : ''}
                       >
                         {chartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -303,7 +305,10 @@ export default function Dashboard() {
                         verticalAlign="bottom" 
                         height={40}
                         iconType="circle"
-                        formatter={(value) => <span className="text-xs font-medium text-slate-400 ml-1">{value}</span>}
+                        formatter={(value, entry) => {
+                          const payload = (entry as any).payload;
+                          return <span className="text-xs font-medium text-slate-400 ml-1">{value} ({payload.value})</span>
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
