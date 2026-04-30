@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import sqlite3
 import json
@@ -156,6 +156,11 @@ def init_db():
 @app.route('/api/ping')
 def ping():
     return 'pong', 200
+
+
+@app.route('/docs')
+def get_docs():
+    return render_template('swagger.html')
 
 
 @app.route('/api/courses')
