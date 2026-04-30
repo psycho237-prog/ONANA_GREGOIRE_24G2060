@@ -30,64 +30,88 @@ def get_db():
 
 
 def init_db():
-    conn = get_db()
-    c = conn.cursor()
+    print(f"[DB] Initializing database at {DB_PATH}...")
+    print(f"[DB] Scripts directory: {SCRIPTS_DIR}")
+    
+    # Check if scripts exist
+    if not os.path.exists(SCRIPTS_DIR):
+        print(f"[DB] ERROR: Scripts directory NOT FOUND at {SCRIPTS_DIR}")
+        # Try fallback to local scripts folder if running from within backend-python
+        fallback_scripts = os.path.join(BASE_DIR, 'scripts')
+        if os.path.exists(fallback_scripts):
+            global SCRIPTS_DIR
+            SCRIPTS_DIR = fallback_scripts
+            print(f"[DB] Found fallback scripts at {SCRIPTS_DIR}")
+    
+    try:
+        conn = get_db()
+        c = conn.cursor()
 
-    c.execute("""CREATE TABLE IF NOT EXISTS courses (
-        id INTEGER PRIMARY KEY,
-        code TEXT NOT NULL,
-        name TEXT NOT NULL
-    )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS courses (
+            id INTEGER PRIMARY KEY,
+            code TEXT NOT NULL,
+            name TEXT NOT NULL
+        )""")
 
-    c.execute("""CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL
-    )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL
+        )""")
 
-    c.execute("""CREATE TABLE IF NOT EXISTS feedback (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        course_id INTEGER,
-        student_name TEXT,
-        content TEXT NOT NULL,
-        sentiment TEXT,
-        score REAL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(course_id) REFERENCES courses(id)
-    )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_id INTEGER,
+            student_name TEXT,
+            content TEXT NOT NULL,
+            sentiment TEXT,
+            score REAL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(course_id) REFERENCES courses(id)
+        )""")
 
-    # Seed courses
-    count = c.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
-    if count == 0:
-        courses_path = os.path.join(SCRIPTS_DIR, 'courses.json')
-        with open(courses_path, 'r', encoding='utf-8') as f:
-            courses = json.load(f)
-        for course in courses:
-            c.execute("INSERT INTO courses (code, name) VALUES (?, ?)",
-                      (course['code'], course['name']))
-        print(f"[DB] Inserted {len(courses)} courses.")
+        # Seed courses
+        count = c.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
+        if count == 0:
+            courses_path = os.path.join(SCRIPTS_DIR, 'courses.json')
+            if os.path.exists(courses_path):
+                with open(courses_path, 'r', encoding='utf-8') as f:
+                    courses = json.load(f)
+                for course in courses:
+                    c.execute("INSERT INTO courses (code, name) VALUES (?, ?)",
+                            (course['code'], course['name']))
+                print(f"[DB] Inserted {len(courses)} courses.")
+            else:
+                print(f"[DB] WARNING: {courses_path} NOT FOUND. Skipping course seed.")
 
-    # Seed students
-    count = c.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    if count == 0:
-        students_path = os.path.join(SCRIPTS_DIR, 'students.json')
-        if os.path.exists(students_path):
-            with open(students_path, 'r', encoding='utf-8') as f:
-                students = json.load(f)
-            
-            # Clean and filter students: exclude names starting with digits (codes)
-            students = [s for s in students if s['name'] and not s['name'][0].isdigit()]
-            
-            # Shuffle students to mix names (avoid alphabetical order)
-            random.shuffle(students)
-            
-            for s in students:
-                try:
-                    c.execute("INSERT OR IGNORE INTO students (name, email) VALUES (?, ?)",
-                              (s['name'], s['email']))
-                except Exception:
-                    pass
-            print(f"[DB] Inserted {len(students)} clean students.")
+        # Seed students
+        count = c.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+        if count == 0:
+            students_path = os.path.join(SCRIPTS_DIR, 'students.json')
+            if os.path.exists(students_path):
+                with open(students_path, 'r', encoding='utf-8') as f:
+                    students = json.load(f)
+                
+                # Clean and filter students: exclude names starting with digits (codes)
+                students = [s for s in students if s['name'] and not s['name'][0].isdigit()]
+                
+                # Shuffle students to mix names (avoid alphabetical order)
+                random.shuffle(students)
+                
+                for s in students:
+                    try:
+                        c.execute("INSERT OR IGNORE INTO students (name, email) VALUES (?, ?)",
+                                (s['name'], s['email']))
+                    except Exception:
+                        pass
+                print(f"[DB] Inserted {len(students)} clean students.")
+            else:
+                print(f"[DB] WARNING: {students_path} NOT FOUND. Skipping student seed.")
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[DB] FATAL ERROR during initialization: {e}")
 
             # Seed 200 random feedbacks across courses
             fb_count = c.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
