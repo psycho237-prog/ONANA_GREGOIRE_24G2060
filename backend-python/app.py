@@ -303,15 +303,16 @@ def auto_ping():
             print(f"[AutoPing] Failed: {e}")
 
 
+# Initializing database and starting background threads
+print("[Student Pulse] Initializing database...")
+init_db()
+print("[Student Pulse] Database ready!")
+
+# Start auto-ping thread
+ping_thread = threading.Thread(target=auto_ping, daemon=True)
+ping_thread.start()
+
 if __name__ == '__main__':
-    print("[Student Pulse] Initializing database...")
-    init_db()
-    print("[Student Pulse] Database ready!")
-
-    # Start auto-ping thread
-    ping_thread = threading.Thread(target=auto_ping, daemon=True)
-    ping_thread.start()
-
     port = int(os.environ.get('PORT', 8080))
     print(f"[Student Pulse] Server running on http://0.0.0.0:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
