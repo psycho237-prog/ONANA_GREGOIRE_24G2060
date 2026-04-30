@@ -18,7 +18,19 @@ app = Flask(__name__)
 CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCRIPTS_DIR = os.path.join(BASE_DIR, '..', 'scripts')
+# Correctly locate scripts folder
+# Priorities: 1. Local scripts folder (backend-python/scripts), 2. Parent scripts folder (../scripts)
+local_scripts = os.path.join(BASE_DIR, 'scripts')
+parent_scripts = os.path.join(BASE_DIR, '..', 'scripts')
+
+if os.path.exists(local_scripts):
+    SCRIPTS_DIR = local_scripts
+elif os.path.exists(parent_scripts):
+    SCRIPTS_DIR = parent_scripts
+else:
+    # Default to local if nothing found yet
+    SCRIPTS_DIR = local_scripts
+
 # Use local folder for DB if no persistent disk is available (Render Free)
 DB_PATH = os.environ.get('DB_PATH', os.path.join(BASE_DIR, 'student_sentiment.db'))
 
@@ -82,7 +94,7 @@ def init_db():
                             (course['code'], course['name']))
                 print(f"[DB] Inserted {len(courses)} courses.")
             else:
-                print(f"[DB] WARNING: {courses_path} NOT FOUND. Skipping course seed.")
+                print(f"[DB] WARNING: {courses_path} NOT FOUND.")
 
         # Seed students
         count = c.execute("SELECT COUNT(*) FROM students").fetchone()[0]
@@ -92,10 +104,8 @@ def init_db():
                 with open(students_path, 'r', encoding='utf-8') as f:
                     students = json.load(f)
                 
-                # Clean and filter students: exclude names starting with digits (codes)
+                # Clean and filter students
                 students = [s for s in students if s['name'] and not s['name'][0].isdigit()]
-                
-                # Shuffle students to mix names (avoid alphabetical order)
                 random.shuffle(students)
                 
                 for s in students:
@@ -105,48 +115,50 @@ def init_db():
                     except Exception:
                         pass
                 print(f"[DB] Inserted {len(students)} clean students.")
-            else:
-                print(f"[DB] WARNING: {students_path} NOT FOUND. Skipping student seed.")
+
+        # Seed 200 random feedbacks
+        fb_count = c.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
+        if fb_count == 0:
+            sample_comments = [
+                ("C'est un excellent cours, très bien structuré !", "positive"),
+                ("Le professeur explique très clairement.", "positive"),
+                ("J'adore ce module, très enrichissant !", "positive"),
+                ("Contenu très intéressant et motivant.", "positive"),
+                ("Super cours, logique et facile à suivre.", "positive"),
+                ("Un peu difficile à suivre parfois.", "negative"),
+                ("Pas assez de travaux pratiques.", "negative"),
+                ("Les maths sont trop compliquées pour moi.", "negative"),
+                ("Le cours manque d'exercices corrigés.", "negative"),
+                ("Trop de théorie, pas assez de pratique.", "negative"),
+                ("Cours correct, ni trop facile ni trop dur.", "neutral"),
+                ("Contenu standard, rien d'exceptionnel.", "neutral"),
+                ("Acceptable, peut mieux faire.", "neutral"),
+            ]
+            
+            rows = c.execute("SELECT id FROM courses").fetchall()
+            c_ids = [r['id'] for r in rows]
+            
+            rows = c.execute("SELECT name FROM students").fetchall()
+            s_names = [r['name'] for r in rows]
+            
+            if c_ids and s_names:
+                for _ in range(min(200, len(s_names))):
+                    course_id = random.choice(c_ids)
+                    student_name = random.choice(s_names)
+                    comment, sentiment = random.choice(sample_comments)
+                    _, score = analyze_sentiment(comment)
+                    
+                    c.execute(
+                        "INSERT INTO feedback (course_id, student_name, content, sentiment, score) VALUES (?, ?, ?, ?, ?)",
+                        (course_id, student_name, comment, sentiment, score)
+                    )
+                print(f"[DB] Seeded 200 random feedbacks.")
 
         conn.commit()
         conn.close()
+        print("--- DB INIT SUCCESS ---")
     except Exception as e:
-        print(f"[DB] FATAL ERROR during initialization: {e}")
-
-            # Seed 200 random feedbacks across courses
-            fb_count = c.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
-            if fb_count == 0:
-                sample_comments = [
-                    ("C'est un excellent cours, très bien structuré !", "positive"),
-                    ("Le professeur explique très clairement.", "positive"),
-                    ("J'adore ce module, très enrichissant !", "positive"),
-                    ("Contenu très intéressant et motivant.", "positive"),
-                    ("Super cours, logique et facile à suivre.", "positive"),
-                    ("Un peu difficile à suivre parfois.", "negative"),
-                    ("Pas assez de travaux pratiques.", "negative"),
-                    ("Les maths sont trop compliquées pour moi.", "negative"),
-                    ("Le cours manque d'exercices corrigés.", "negative"),
-                    ("Trop de théorie, pas assez de pratique.", "negative"),
-                    ("Cours correct, ni trop facile ni trop dur.", "neutral"),
-                    ("Contenu standard, rien d'exceptionnel.", "neutral"),
-                    ("Acceptable, peut mieux faire.", "neutral"),
-                ]
-                num_courses = c.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
-                
-                # Use a fresh shuffle for feedbacks too
-                random_students = students.copy()
-                random.shuffle(random_students)
-                
-                for i in range(min(200, len(random_students))):
-                    s = random_students[i]
-                    course_id = (i % num_courses) + 1
-                    comment_idx = i % len(sample_comments)
-                    comment, sentiment = sample_comments[comment_idx]
-                    _, score = analyze_sentiment(comment)
-                    c.execute(
-                        "INSERT INTO feedback (course_id, student_name, content, sentiment, score) VALUES (?, ?, ?, ?, ?)",
-                        (course_id, s['name'], comment, sentiment, score)
-                    )
+        print(f"--- DB INIT FATAL ERROR: {e} ---")
                 print("[DB] Seeded 200 shuffled feedbacks.")
 
     conn.commit()
